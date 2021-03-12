@@ -25,3 +25,5 @@ interface Observer2<T> {
 }
 
 interface Observer3<T> extends Observer2<T> { }
+
+interface Observer4<T> extends Observer3<T> { }
