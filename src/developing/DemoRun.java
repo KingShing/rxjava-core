@@ -3,6 +3,7 @@ package developing;
 
 import core.Observer;
 import core.SchedulerWorker;
+import core.operator.Function;
 
 public class DemoRun {
 
@@ -18,57 +19,48 @@ public class DemoRun {
 
     public static void main(String[] args) {
 
-        // 线程切换效果，code1 内，都在A线程中调用 ， code2 内在B线程中调用
-        // 要想做到上述效果
-        // code1 情况只需要 让ObservableOnSubscribe的 _subscribe() 方法指定在A线程中执行就行
-        // code2 情况只需要 Observer的 四个方法 指定在B 线程中执行就ok
+        // 实现map操作
+        // 说白了就是 Observer 回调前 对数据进行一次转换（map）即可
+        // 也是增强Observer，传入一个转换规则A, 回调前，利用转换规则，将转换后的数据回调即可
 
-        // 先研究 Observer的 ，就是让Observer 具有线程切换的功能，怎么搞？
-        //
-        // 在Observer 中传入线程? 把需要执行的方法放到线程的run方法中去执行？但是业务侧如果不需要切换线程呢？加个开关？传个空的线程？
-        // 所以这个功能应该是可插拔的，最好对原有代码无侵入
+        // 参见 MapObserver
 
-        // ---> 装饰器模式，对Observer装饰 [ObserveOnObserver]
-
-        // 有这里加强版的observer后，只需要在 Observable中提供一个切换下游线程的方法即可
-
-        // 上游切换 ，对ObservableOnSubscribe 的 _subscribe 方法进行切换即可，
-        // 同理装饰 Observable 即可，对他进行增强
+        // 然后 Observable 中提供一个 给用户 输入转化规则A 的方法即可
 
         Observable5.<String>create(new ObservableOnSubscribe<String>() {
             @Override
             public void _subscribe(Emitter<String> emitter) {
                 currThreadName("code1");
-                emitter._onNext("hihi"); // code1
-                emitter._onNext("www");  // code1
-                emitter._onNext("ww");   // code1
+                emitter._onNext("123"); // code1
+
                 emitter._onComplete();        // code1
             }
         })
+                .map(new Function<String, Integer>() {
+                    @Override
+                    public Integer apply(String s) throws Exception {
+                        return Integer.parseInt(s);
+                    }
+                })
                 .subscribeOn(SchedulerWorker.work())
-                // 下游反复切，最后一次生效
                 .observeOn(SchedulerWorker.ui())
-                .subscribe(new Observer<String>() {
+                .subscribe(new Observer<Integer>() {
                     public void onSubscribe() {
                         printlnData("onSubscribe"); // code2
-                        currThreadName("code2 ：onSubscribe");
                     }
 
                     @Override
-                    public void onNext(String data) {
-                        printlnData(data);  // code2
-                        currThreadName("code2 ：onNext");
+                    public void onNext(Integer data) {
+                        printlnData(++data + "");  // code2
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        // code2
                     }
 
                     @Override
                     public void onComplete() {
                         printlnData("onComplete"); // code2
-                        currThreadName("code2 ：onComplete");
                     }
                 });
 

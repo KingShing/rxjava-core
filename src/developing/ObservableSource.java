@@ -1,10 +1,10 @@
 package developing;
 
 
-import core.Observable;
 import core.ObservableSource;
 import core.Observer;
 import core.SchedulerWorker;
+import core.operator.Function;
 
 /**
  * 被观察者
@@ -57,6 +57,12 @@ abstract class Observable5<T> implements ObservableSource<T> {
             Runnable action = () -> source.subscribe(observer);
             worker.run(action);
         }
+    }
+
+
+    // 提供用户输入转换规则
+    public final <R> Observable5<R> map(Function<? super T, ? extends R> function) {
+        return new ObservableMap5<T, R>(this, function);
     }
 
     static <U> Observable5<U> create(ObservableOnSubscribe<U> source) {
