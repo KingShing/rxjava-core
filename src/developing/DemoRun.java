@@ -32,6 +32,9 @@ public class DemoRun {
 
         // 有这里加强版的observer后，只需要在 Observable中提供一个切换下游线程的方法即可
 
+        // 上游切换 ，对ObservableOnSubscribe 的 _subscribe 方法进行切换即可，
+        // 同理装饰 Observable 即可，对他进行增强
+
         Observable5.<String>create(new ObservableOnSubscribe<String>() {
             @Override
             public void _subscribe(Emitter<String> emitter) {
@@ -42,8 +45,8 @@ public class DemoRun {
                 emitter._onComplete();        // code1
             }
         })
+                .subscribeOn(SchedulerWorker.work())
                 // 下游反复切，最后一次生效
-                .observeOn(SchedulerWorker.work())
                 .observeOn(SchedulerWorker.ui())
                 .subscribe(new Observer<String>() {
                     public void onSubscribe() {
@@ -72,18 +75,18 @@ public class DemoRun {
 
         /**
          *   运行结果：
-         *
-         *  code1 : [thread: main]
+         *   code1 : [thread: worker thread:1791741888]
          *  [data: onSubscribe]
-         * code2 ：onSubscribe : [thread: ui thread:2076068879]
+         * code2 ：onSubscribe : [thread: ui thread:2080602258]
          *  [data: hihi]
-         * code2 ：onNext : [thread: ui thread:2076068879]
+         * code2 ：onNext : [thread: ui thread:2080602258]
          *  [data: www]
-         * code2 ：onNext : [thread: ui thread:2076068879]
+         * code2 ：onNext : [thread: ui thread:2080602258]
          *  [data: ww]
-         * code2 ：onNext : [thread: ui thread:2076068879]
+         * code2 ：onNext : [thread: ui thread:2080602258]
          *  [data: onComplete]
-         * code2 ：onComplete : [thread: ui thread:2076068879]
+         * code2 ：onComplete : [thread: ui thread:2080602258]
+         *
          */
     }
 }
