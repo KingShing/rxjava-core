@@ -14,23 +14,23 @@ public class DemoRun {
 
     public static void main(String[] args) {
 
-        new ObservableSource2<String>() {
+        new ObservableSource3<String>() {
             @Override
-            public void subscribe(Observer2<String> observer) {
-                observer.onSubscribe();
+            public void subscribe(Observer3<String> observer) {
+                observer.onSubscribe(); // code1
                 //上面代表回调已经设置好了，这个事情只需要告知一次即可
 
-                // 假设这里我不发射数据，或者。。我等一会再调用其他接口是不是也可以
-                // sleep(5000)
-                observer.onNext("hello");
-                observer.onNext("world");
+                //  数据发射已经给一个类专门去做
+                SimpleEmitter<String> simpleEmitter = new SimpleEmitter<>(observer); // code2
+                simpleEmitter._onNext("hello world"); // code3
+//                simpleEmitter._onError(e); // code4
+                simpleEmitter._onComplete(); // code5
 
-                // sleep(5000)
-                observer.onComplete();
-                // 所以说 onNext，onError，onComplete  做的事情不太一样，是发射数据，可以单独弄一个类去做，但这个类肯定也要持有observer，不然没法回调
-                // 但是，如果持有observer的话，这个类不守规矩，又去调用了onSubscribe，咋办？---》接口隔离，已经调用的去掉
+                // 但是看起来这么调用有点傻，没啥用啊
+                // 实际上我们认真分析，就能发现 code1 code2 都不应该让调用者手动去调用的
+                // 只有 code3、4、5 确实需要开发者去调用，所以下一版 将解决上述问题，只暴露必要的接口
             }
-        }.subscribe(new Observer2<String>() {
+        }.subscribe(new Observer3<String>() {
             @Override
             public void onSubscribe() { printlnData("onSubscribe"); }
             @Override
@@ -44,10 +44,8 @@ public class DemoRun {
 
         /**
          *  打印结果
-         *
-         *  [data: onSubscribe]
-         *  [data: hello]
-         *  [data: world]
+         *   [data: onSubscribe]
+         *  [data: hello world]
          *  [data: onComplete]
          */
     }

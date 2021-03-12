@@ -1,6 +1,8 @@
 package developing;
 
 
+import core.Observer;
+
 /**
  * 被观察者
  *
@@ -16,3 +18,7 @@ interface ObservableSource2<T> {
     void subscribe(Observer2<T> observer);
 }
 
+interface ObservableSource3<T> {
+
+    void subscribe(Observer3<T> observer);
+}
