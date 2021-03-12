@@ -14,6 +14,23 @@ public interface SchedulerWorker {
         new Thread(runnable, "worker thread").start();
     }
 
+    static SchedulerWorker work() {
+        return new SchedulerWorker() {
+            @Override
+            public void run(Runnable run) {
+                new Thread(run, "worker thread:" + this.hashCode()).start();
+            }
+        };
+    }
+
+    static SchedulerWorker ui() {
+        return new SchedulerWorker() {
+            @Override
+            public void run(Runnable run) {
+                new Thread(run, "ui thread:" + this.hashCode()).start();
+            }
+        };
+    }
 
     static void mockUiThread(Runnable runnable) {
         new Thread(runnable, "ui thread").start();

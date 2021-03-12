@@ -1,6 +1,8 @@
 package developing;
 
 
+import core.Observer;
+
 public interface Emitter<T> {
 
     void _onNext(T data);
@@ -12,9 +14,9 @@ public interface Emitter<T> {
 
 class SimpleEmitter<T> implements Emitter<T> {
 
-    final private Observer3<T> observer;
+    final private Observer<T> observer;
 
-    public SimpleEmitter(Observer3<T> observer) {
+    public SimpleEmitter(Observer<T> observer) {
         this.observer = observer;
     }
 

@@ -1,29 +1,42 @@
 package developing;
 
+import core.Observer;
+import core.SchedulerWorker;
+
 /**
- * 观察者
- *
+ * Observer 的装饰者
+ * <p>
+ * 加强功能：能够线程切换
+ *  因为线程是外部指定的，不能写死，所以需要外部传入一个能够执行runnable的东东[SchedulerWorker]
  * @param <T> 数据类型
  */
-interface Observer1<T> {
-    void onNext(T data);
+class ObserveOnObserver5<T> implements Observer<T> {
+
+    private final SchedulerWorker worker;
+    private final Observer<T> observer;
+
+    public ObserveOnObserver5(Observer<T> observer, SchedulerWorker worker) {
+        this.worker = worker;
+        this.observer = observer;
+    }
+
+    @Override
+    public void onSubscribe() {
+        worker.run(observer::onSubscribe);
+    }
+
+    @Override
+    public void onNext(T data) {
+        worker.run(() -> observer.onNext(data));
+    }
+
+    @Override
+    public void onError(Throwable e) {
+        worker.run(() -> observer.onError(e));
+    }
+
+    @Override
+    public void onComplete() {
+        worker.run(observer::onComplete);
+    }
 }
-
-interface Observer2<T> {
-
-    // 当使用这new 一个Observer2，传给ObservableSource被观察者时，触发
-    // 意思就是回调已经设置好了，现在可以调用onNext了
-    void onSubscribe();
-
-    void onNext(T data);
-
-    // 错误的情况也需要
-    void onError(Throwable e);
-
-    // 多次回调时，用于确定啥时候onNext调完了，不会再发射数据了
-    void onComplete();
-}
-
-interface Observer3<T> extends Observer2<T> { }
-
-interface Observer4<T> extends Observer3<T> { }
